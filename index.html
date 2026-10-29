@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BOTdreams — keep your dreams on BOT Chain</title>
+<meta name="description" content="BOTdreams is a simple place to keep your dreams on BOT Chain. Add a dream, mark it achieved, and share your list with a link. Free to use apart from network fees." />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%235B3FD0%22%2F%3E%3Cpath%20d%3D%22M38%2013A21%2021%200%201%200%2051%2042A17%2017%200%200%201%2038%2013Z%22%20fill%3D%22%23fff%22%2F%3E%3Cpath%20d%3D%22M47%2014l1.9%204.6%204.6%201.9-4.6%201.9L47%2027l-1.9-4.6-4.6-1.9%204.6-1.9z%22%20fill%3D%22%23fff%22%2F%3E%3C%2Fsvg%3E" />
+<style>
+  :root {
+    --bg: #FAFAF8; --card: #FFFFFF; --text: #1C1C1E; --muted: #66666E; --line: #E3E3DE;
+    --accent: #5B3FD0; --on-accent: #FFFFFF; --danger: #B3261E; --ok: #1B7F4B;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #121214; --card: #1B1B1F; --text: #ECECF0; --muted: #A0A0AC; --line: #2C2C33;
+            --accent: #A78BFA; --on-accent: #140D33; --danger: #FF8A80; --ok: #5FD39B; }
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 560px; margin: 0 auto; padding: 28px 16px 56px; }
+  a { color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  header .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  h1 { margin: 0; font-size: 26px; letter-spacing: -0.01em; }
+  .tag { margin: 6px 0 0; color: var(--muted); }
+  .built { margin: 4px 0 0; font-size: 14px; color: var(--muted); }
+
+  button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--text); padding: 8px 14px; }
+  button:hover:not(:disabled) { border-color: var(--accent); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
+  #connectBtn.connected { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px; }
+
+  .notice { min-height: 24px; margin: 16px 0 0; font-size: 14px; color: var(--muted); }
+  .notice.ok { color: var(--ok); } .notice.err { color: var(--danger); }
+  #switchBtn { margin-top: 8px; }
+
+  .intro, .banner { margin-top: 20px; padding: 14px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+  .banner code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; word-break: break-all; }
+
+  form { display: flex; gap: 8px; margin-top: 20px; }
+  input[type=text] { flex: 1; min-width: 0; font: inherit; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--text); }
+  input[type=text]:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: var(--accent); }
+  .counter { margin: 6px 2px 0; font-size: 13px; color: var(--muted); text-align: right; }
+
+  .summary { margin: 24px 2px 8px; font-size: 14px; color: var(--muted); }
+  ul { list-style: none; margin: 0; padding: 0; }
+  .dream { display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin-bottom: 8px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+  .dream input[type=checkbox] { width: 20px; height: 20px; flex: none; accent-color: var(--accent); cursor: pointer; }
+  .dream input[type=checkbox]:disabled { cursor: default; }
+  .dream .text { flex: 1; overflow-wrap: anywhere; }
+  .dream.done .text { color: var(--muted); text-decoration: line-through; }
+  .dream button { flex: none; padding: 4px 10px; font-size: 14px; color: var(--muted); }
+  .empty { color: var(--muted); padding: 8px 2px; }
+
+  .share { margin-top: 24px; font-size: 14px; color: var(--muted); }
+  .share .row { display: flex; gap: 8px; margin-top: 6px; }
+  .share input { font-size: 13px; }
+
+  footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); }
+  footer .links { margin: 0 0 10px; }
+  footer .fine { margin: 0; font-size: 13px; }
+  .demo { background: var(--card); border-bottom: 1px dashed var(--accent); color: var(--accent); font-size: 13px; text-align: center; padding: 8px 12px; }
+
+  dialog { background: var(--card); color: var(--text); border: 1px solid var(--line); border-radius: 12px; padding: 20px; width: min(360px, 92vw); }
+  dialog::backdrop { background: rgba(0,0,0,.5); }
+  dialog h2 { margin: 0 0 12px; font-size: 18px; }
+  #walletList { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
+  #walletList button { width: 100%; display: flex; align-items: center; gap: 10px; text-align: left; padding: 10px 12px; }
+</style>
+</head>
+<body>
+<div id="demoBanner" class="demo" hidden>Preview: the wallet and the dreams are simulated with demo data. Nothing here touches a real chain.</div>
+<div class="wrap">
+  <header>
+    <div class="top">
+      <h1>BOTdreams</h1>
+      <button id="connectBtn" class="primary" type="button">Connect wallet</button>
+    </div>
+    <p class="tag">Keep your dreams on BOT Chain. Free to use, apart from network fees.</p>
+    <p class="built">Built on
+      <a href="https://www.botchain.ai" target="_blank" rel="noopener noreferrer">BOT Chain &#8599;</a> &middot;
+      <a href="https://scan.botchain.ai/" target="_blank" rel="noopener noreferrer">BOT Scan &#8599;</a></p>
+  </header>
+
+  <main>
+    <p id="notice" class="notice" role="status" aria-live="polite"></p>
+    <button id="switchBtn" type="button" hidden>Switch to BOT Chain</button>
+
+    <div id="intro" class="intro">Connect your wallet to start your list of dreams, or open a link someone shared with you to see theirs.</div>
+
+    <div id="viewBanner" class="banner" hidden>Viewing the dreams of <code id="viewAddr"></code>. <a id="backLink" href="./">Back to my list</a></div>
+
+    <form id="addForm" hidden>
+      <input id="dreamInput" type="text" maxlength="140" autocomplete="off" placeholder="I dream of&hellip;" aria-label="New dream" />
+      <button id="addBtn" class="primary" type="submit" disabled>Add dream</button>
+    </form>
+    <div id="counter" class="counter" hidden>0 / 140</div>
+
+    <div id="summary" class="summary" hidden></div>
+    <ul id="dreamList"></ul>
+    <p id="emptyMsg" class="empty" hidden></p>
+
+    <div id="shareBox" class="share" hidden>
+      Share your list. Anyone with the link can read it.
+      <div class="row"><input id="shareLink" type="text" readonly aria-label="Link to your dreams" /><button id="copyBtn" type="button">Copy</button></div>
+    </div>
+  </main>
+
+  <footer>
+    <p class="links">
+      <a href="https://www.botchain.ai" target="_blank" rel="noopener noreferrer">botchain.ai &#8599;</a> &middot;
+      <a href="https://scan.botchain.ai/" target="_blank" rel="noopener noreferrer">BOT Scan &#8599;</a>
+      <span id="footContract" hidden> &middot; <a id="footContractLink" href="#" target="_blank" rel="noopener noreferrer">Contract &#8599;</a></span>
+    </p>
+    <p class="fine">Everything on a blockchain is public. Anyone can read your dreams. Removing a dream hides it from your list, but it can't be erased from blockchain history, so don't put anything private here.</p>
+  </footer>
+</div>
+
+<dialog id="walletDialog" aria-labelledby="walletTitle">
+  <h2 id="walletTitle">Choose a wallet</h2>
+  <ul id="walletList"></ul>
+  <form method="dialog" style="display:block;margin:0"><button type="submit">Cancel</button></form>
+</dialog>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js"></script>
+<script>
+(() => {
+"use strict";
+
+/* ====================== CONFIG: edit these ====================== */
+const DEMO = false;                                   // only true in the preview copy
+const CONTRACT_ADDRESS = "0x43A9B755008A8c2d4569955B5188B327f944e9B8";
+const NETWORK = "mainnet";                            // "mainnet" (BOT Chain, id 677) or "testnet" (id 968)
+/* ================================================================ */
+
+const NETWORKS = {
+  mainnet: { chainId: "0x2A5", chainName: "BOT Chain", nativeCurrency: { name: "BOT", symbol: "BOT", decimals: 18 },
+             rpcUrls: ["https://rpc.botchain.ai"], blockExplorerUrls: ["https://scan.botchain.ai/"] },
+  testnet: { chainId: "0x3C8", chainName: "BOT Chain Testnet", nativeCurrency: { name: "BOT", symbol: "BOT", decimals: 18 },
+             rpcUrls: ["https://rpc.bohr.life"], blockExplorerUrls: ["https://scan.bohr.life/"] },
+};
+const net = NETWORKS[NETWORK];
+const ABI = [
+  "function addDream(string text) returns (uint256)",
+  "function setAchieved(uint256 id, bool achieved)",
+  "function removeDream(uint256 id)",
+  "function getDreams(address owner) view returns (tuple(string text, bool achieved, bool removed, uint64 createdAt)[])",
+];
+const MAX_CHARS = 140;
+const HAS_CONTRACT = DEMO || !CONTRACT_ADDRESS.startsWith("PASTE");
+
+/* ---------- helpers ---------- */
+const $ = (id) => document.getElementById(id);
+const short = (a) => (a ? a.slice(0, 6) + "\u2026" + a.slice(-4) : "");
+const ADDR_RE = /^0x[a-fA-F0-9]{40}$/;
+const sameAddr = (a, b) => !!a && !!b && a.toLowerCase() === b.toLowerCase();
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+function friendly(e) {
+  if (e && (e.code === 4001 || e.code === "ACTION_REJECTED")) return "Cancelled in your wallet.";
+  const msg = (e && (e.reason || e.shortMessage || (e.info && e.info.error && e.info.error.message) || e.message)) || "";
+  if (!msg || /missing revert data|CALL_EXCEPTION|execution reverted$/i.test(msg)) return "The network rejected this. Please try again.";
+  return msg;
+}
+
+/* ---------- wallet discovery (EIP-6963, so several wallet extensions can coexist) ---------- */
+const wallets6963 = new Map();
+window.addEventListener("eip6963:announceProvider", (ev) => {
+  const d = ev && ev.detail;
+  if (d && d.info && d.info.uuid && d.provider) wallets6963.set(d.info.uuid, d);
+});
+window.dispatchEvent(new Event("eip6963:requestProvider"));
+function listWallets() {
+  const list = Array.from(wallets6963.values());
+  if (!list.length && window.ethereum) list.push({ info: { uuid: "injected", name: "Browser wallet", icon: "" }, provider: window.ethereum });
+  return list;
+}
+function pickWallet(list) {
+  return new Promise((resolve) => {
+    const dlg = $("walletDialog"), ul = $("walletList");
+    ul.innerHTML = "";
+    let done = false;
+    list.forEach((w) => {
+      const li = document.createElement("li"), b = document.createElement("button");
+      b.type = "button";
+      if (w.info.icon && /^data:image\//.test(w.info.icon)) { const img = new Image(); img.src = w.info.icon; img.alt = ""; img.width = 24; img.height = 24; b.appendChild(img); }
+      const span = document.createElement("span"); span.textContent = String(w.info.name || "Wallet").slice(0, 40); b.appendChild(span);
+      b.addEventListener("click", () => { done = true; dlg.close(); resolve(w); });
+      li.appendChild(b); ul.appendChild(li);
+    });
+    dlg.addEventListener("close", () => { if (!done) resolve(null); }, { once: true });
+    dlg.showModal();
+  });
+}
+
+/* ---------- chain adapters: one real, one simulated (preview). Same interface. ---------- */
+const real = (() => {
+  const KEY = "botdreams_wallet";
+  const subs = [];
+  let raw = null, account = null, readC = null;
+  const notify = () => subs.forEach((f) => f());
+
+  async function chainOk() { return !!raw && BigInt(await raw.request({ method: "eth_chainId" })) === BigInt(net.chainId); }
+  async function ensureNetwork() {
+    if (await chainOk()) return;
+    try { await raw.request({ method: "wallet_switchEthereumChain", params: [{ chainId: net.chainId }] }); }
+    catch (e) {
+      const code = e && (e.code || (e.data && e.data.originalError && e.data.originalError.code));
+      if (code === 4902) await raw.request({ method: "wallet_addEthereumChain", params: [net] }); else throw e;
+    }
+  }
+  function onAccounts(a) { account = a && a[0] ? a[0] : null; notify(); }
+  function bind(p) {
+    if (raw && raw.removeListener) { raw.removeListener("accountsChanged", onAccounts); raw.removeListener("chainChanged", notify); }
+    raw = p;
+    if (raw.on) { raw.on("accountsChanged", onAccounts); raw.on("chainChanged", notify); }
+  }
+  async function reader() {
+    if (raw && account && (await chainOk())) return new ethers.Contract(CONTRACT_ADDRESS, ABI, new ethers.BrowserProvider(raw));
+    if (!readC) readC = new ethers.Contract(CONTRACT_ADDRESS, ABI, new ethers.JsonRpcProvider(net.rpcUrls[0], parseInt(net.chainId, 16), { staticNetwork: true }));
+    return readC;
+  }
+  async function send(fn) {
+    await ensureNetwork();
+    const signer = await new ethers.BrowserProvider(raw).getSigner(account);
+    const tx = await fn(new ethers.Contract(CONTRACT_ADDRESS, ABI, signer));
+    await tx.wait();
+  }
+  return {
+    subscribe: (fn) => subs.push(fn),
+    address: () => (account ? ethers.getAddress(account) : null),
+    chainOk,
+    async switchNetwork() { await ensureNetwork(); },
+    async connect() {
+      const list = listWallets();
+      if (!list.length) throw new Error("No wallet detected. Install a browser wallet such as MetaMask, then refresh this page.");
+      const chosen = list.length === 1 ? list[0] : await pickWallet(list);
+      if (!chosen) return null;
+      const accounts = await chosen.provider.request({ method: "eth_requestAccounts" });
+      if (!accounts || !accounts.length) return null;
+      bind(chosen.provider); account = accounts[0];
+      try { localStorage.setItem(KEY, chosen.info.uuid); } catch (e) {}
+      try { await ensureNetwork(); } catch (e) { /* the page offers a "Switch to BOT Chain" button */ }
+      return account;
+    },
+    async autoReconnect() {
+      let id = null; try { id = localStorage.getItem(KEY); } catch (e) {}
+      if (!id) return null;
+      await sleep(300); // let wallet extensions announce themselves
+      const w = listWallets().find((x) => x.info.uuid === id);
+      if (!w) return null;
+      const accounts = await w.provider.request({ method: "eth_accounts" });
+      if (!accounts || !accounts.length) return null;
+      bind(w.provider); account = accounts[0];
+      return account;
+    },
+    disconnect() { account = null; try { localStorage.removeItem(KEY); } catch (e) {} },
+    async getDreams(addr) {
+      const list = await (await reader()).getDreams(addr);
+      return list.map((w, i) => ({ id: i, text: w.text, achieved: w.achieved, removed: w.removed }));
+    },
+    addDream: (text) => send((c) => c.addDream(text)),
+    setAchieved: (id, v) => send((c) => c.setAchieved(id, v)),
+    removeDream: (id) => send((c) => c.removeDream(id)),
+  };
+})();
+
+const demo = (() => {
+  const ME = "0x7a3f9c2b1d4e5f60718293a4b5c6d7e8f9012345", FRIEND = "0xb0b0000000000000000000000000000000000b0b";
+  const mk = (a) => a.map((t, i) => ({ id: i, text: t[0], achieved: !!t[1], removed: false }));
+  const lists = {
+    [ME]: mk([["Run a marathon"], ["Learn to bake sourdough", true], ["Watch the sunrise from a mountain"]]),
+    [FRIEND]: mk([["Write a first short story"], ["See the northern lights"], ["Plant a tree", true]]),
+  };
+  let on = false;
+  return {
+    subscribe() {},
+    address: () => (on ? ME : null),
+    async chainOk() { return true; },
+    async switchNetwork() {},
+    async connect() { await sleep(300); on = true; return ME; },
+    async autoReconnect() { return null; },
+    disconnect() { on = false; },
+    async getDreams(a) { await sleep(150); return (lists[a.toLowerCase()] || []).map((w) => ({ ...w })); },
+    async addDream(text) { await sleep(600); lists[ME].push({ id: lists[ME].length, text, achieved: false, removed: false }); },
+    async setAchieved(id, v) { await sleep(500); lists[ME][id].achieved = v; },
+    async removeDream(id) { await sleep(500); lists[ME][id].removed = true; lists[ME][id].text = ""; },
+  };
+})();
+const chain = DEMO ? demo : real;
+
+/* ---------- state + rendering ---------- */
+const params = new URLSearchParams(location.search);
+let viewAddr = params.get("list");
+if (!viewAddr || !ADDR_RE.test(viewAddr)) viewAddr = null;
+const state = { address: null, chainOk: true, dreams: [], loaded: false, busy: false, loadError: false };
+
+const target = () => viewAddr || state.address;
+const isOwn = () => !!state.address && sameAddr(target(), state.address);
+const canWrite = () => isOwn() && state.chainOk && HAS_CONTRACT;
+
+function setNotice(text, kind) {
+  const el = $("notice"); el.textContent = text || ""; el.className = "notice" + (kind ? " " + kind : "");
+}
+
+function render() {
+  const connected = !!state.address, own = isOwn(), who = target();
+  $("connectBtn").textContent = connected ? short(state.address) : "Connect wallet";
+  $("connectBtn").classList.toggle("connected", connected);
+  $("connectBtn").classList.toggle("primary", !connected);
+
+  $("switchBtn").hidden = !(connected && !state.chainOk);
+  $("intro").hidden = !!who;
+  $("viewBanner").hidden = !(viewAddr && !own);
+  if (viewAddr) $("viewAddr").textContent = viewAddr;
+
+  const form = canWrite();
+  $("addForm").hidden = !form; $("counter").hidden = !form;
+  $("addBtn").disabled = !form || state.busy || !$("dreamInput").value.trim();
+  $("dreamInput").disabled = state.busy;
+
+  const live = state.dreams.filter((w) => !w.removed);
+  const ul = $("dreamList"); ul.innerHTML = "";
+  if (who && state.loaded && !state.loadError) {
+    live.forEach((w) => ul.appendChild(dreamItem(w, canWrite())));
+    const done = live.filter((w) => w.achieved).length;
+    $("summary").hidden = live.length === 0;
+    $("summary").textContent = live.length + (live.length === 1 ? " dream" : " dreams") + " \u00b7 " + done + " achieved";
+    $("emptyMsg").hidden = live.length > 0;
+    $("emptyMsg").textContent = own ? "No dreams yet. Add your first one above." : "This list is empty.";
+  } else {
+    $("summary").hidden = true;
+    $("emptyMsg").hidden = !(who && !state.loaded && !state.loadError);
+    $("emptyMsg").textContent = "Loading\u2026";
+  }
+  $("shareBox").hidden = !(own && state.address && HAS_CONTRACT && state.chainOk);
+  if (!$("shareBox").hidden) $("shareLink").value = location.origin + location.pathname + "?list=" + state.address;
+}
+
+function dreamItem(w, writable) {
+  const li = document.createElement("li");
+  li.className = "dream" + (w.achieved ? " done" : ""); li.dataset.id = String(w.id);
+  const cb = document.createElement("input");
+  cb.type = "checkbox"; cb.checked = w.achieved; cb.disabled = !writable || state.busy;
+  cb.setAttribute("aria-label", "Mark as achieved: " + w.text);
+  cb.addEventListener("change", () => act("Confirm in your wallet\u2026", () => chain.setAchieved(w.id, cb.checked)));
+  const span = document.createElement("span"); span.className = "text"; span.textContent = w.text;
+  li.append(cb, span);
+  if (writable) {
+    const rm = document.createElement("button");
+    rm.type = "button"; rm.className = "remove"; rm.textContent = "Remove"; rm.disabled = state.busy;
+    rm.addEventListener("click", () => {
+      if (!window.confirm("Remove this dream? It disappears from your list, but its text stays in blockchain history.")) return;
+      act("Confirm in your wallet\u2026", () => chain.removeDream(w.id), "Dream removed.");
+    });
+    li.appendChild(rm);
+  }
+  return li;
+}
+
+async function load() {
+  const who = target();
+  if (!who || !HAS_CONTRACT) { state.dreams = []; state.loaded = false; state.loadError = false; return; }
+  if (state.address && !state.chainOk) { state.dreams = []; state.loaded = false; state.loadError = false; return; }
+  try { state.dreams = await chain.getDreams(who); state.loaded = true; state.loadError = false; }
+  catch (e) {
+    state.dreams = []; state.loaded = false; state.loadError = true;
+    setNotice(state.address ? "Couldn't load this list. Check your connection and try again." : "Couldn't load this list. Connect a wallet to view it.", "err");
+  }
+}
+
+async function refresh() {
+  state.address = chain.address();
+  if (state.address) { try { state.chainOk = await chain.chainOk(); } catch (e) { state.chainOk = false; } }
+  if (!HAS_CONTRACT) setNotice("The contract isn't set up yet, so lists can't load. Wallet connection works.", "");
+  else if (state.address && !state.chainOk) {
+    setNotice("Your wallet is on a different network. Switch to " + net.chainName + " to continue.", "");
+  } else if (!state.loadError) setNotice("", "");
+  render();
+  await load();
+  render();
+}
+
+/* ---------- actions ---------- */
+async function act(working, fn, okText) {
+  if (state.busy) return;
+  state.busy = true; setNotice(working, ""); render();
+  try { await fn(); setNotice(okText || "", okText ? "ok" : ""); state.busy = false; await load(); }
+  catch (e) { setNotice(friendly(e), "err"); state.busy = false; await load(); }
+  finally { state.busy = false; render(); }
+}
+
+$("connectBtn").addEventListener("click", async () => {
+  if (state.address) { chain.disconnect(); await refresh(); return; }
+  try { const a = await chain.connect(); if (a) await refresh(); } catch (e) { setNotice(friendly(e), "err"); }
+});
+$("switchBtn").addEventListener("click", async () => {
+  try { await chain.switchNetwork(); await refresh(); } catch (e) { setNotice(friendly(e), "err"); }
+});
+if (chain.subscribe) chain.subscribe(() => refresh());
+
+function updateCounter() { $("counter").textContent = $("dreamInput").value.length + " / " + MAX_CHARS; }
+$("dreamInput").addEventListener("input", () => { updateCounter(); render(); });
+$("addForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const text = $("dreamInput").value.trim();
+  if (!text || !canWrite()) return;
+  act("Confirm in your wallet\u2026", async () => { await chain.addDream(text); $("dreamInput").value = ""; updateCounter(); }, "Dream added.");
+});
+$("copyBtn").addEventListener("click", async () => {
+  const input = $("shareLink");
+  try { await navigator.clipboard.writeText(input.value); setNotice("Link copied.", "ok"); }
+  catch (e) { input.select(); setNotice("Press Ctrl/Cmd + C to copy the link.", ""); }
+});
+
+/* ---------- page chrome + boot ---------- */
+if (HAS_CONTRACT && !DEMO) {
+  $("footContractLink").href = net.blockExplorerUrls[0] + "address/" + CONTRACT_ADDRESS; $("footContract").hidden = false;
+}
+if (DEMO) { $("demoBanner").hidden = false; document.title = "[Preview] " + document.title; }
+$("backLink").href = location.pathname;
+
+render();
+(async () => {
+  try { const a = await chain.autoReconnect(); if (a) { await refresh(); return; } } catch (e) {}
+  await refresh();
+})();
+})();
+</script>
+</body>
+</html>
